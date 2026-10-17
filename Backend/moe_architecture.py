@@ -84,14 +84,11 @@ class SparseMoERouterLayer(nn.Module):
         aux_loss = self.num_experts * torch.sum(density * mean_prob)
 
         out_flat = torch.zeros_like(x_flat)
-        for k in range(self.top_k):
-            idx = top_k_indices[:, k]
-            w = top_k_weights[:, k].unsqueeze(-1)
-            for exp_id, expert in enumerate(self.experts):
-                sel = (idx == exp_id)
-                if sel.any():
-                    out_flat[sel] += expert(x_flat[sel]) * w[sel]
-
+        for exp_id, expert in enumerate(self.experts):
+            match_mask = (top_k_indices == exp_id).float()
+            exp_weight = (match_mask * top_k_weights).sum(dim=-1, keepdim=True)
+            out_flat = out_flat + expert(x_flat) * exp_weight
+            
         expert_contrib = probs.view(B, S, self.num_experts).mean(dim=1)
         return out_flat.view(B, S, D), expert_contrib, aux_loss
 

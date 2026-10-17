@@ -5,6 +5,10 @@ pandas>=2.3.3,<3.1.0
 scikit-learn>=1.9.0,<2.0.0
 networkx>=3.4,<4.0
 
+# ONNX Ecosystem (Python 3.14 + GPU Support)
+onnx>=1.19.0,<2.0.0
+onnxruntime-gpu>=1.24.1,<2.0.0
+
 # API Backend Stack
 fastapi>=0.130.0,<0.144.0
 uvicorn>=0.30.0,<0.35.0
