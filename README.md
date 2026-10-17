@@ -122,6 +122,20 @@ flowchart TD
     review.
 8.  **Evaluate:** Record model quality and processing measurements.
 
+## 🔄 Aegis-MoE End-to-End Workflow
+
+The following workflow illustrates how Aegis-MoE processes transaction data, combines specialized Mixture-of-Experts predictions, prioritizes fraud alerts, and supports investigation through an interactive dashboard.
+
+<p align="center">
+  <img
+    src="assets/aegis-workflow.png"
+    alt="Aegis-MoE end-to-end workflow showing data ingestion, four specialized experts, gating network, risk engine, investigation dashboard, and continuous feedback"
+    width="100%"
+  />
+</p>
+
+*Figure: Proposed end-to-end workflow of Aegis-MoE.*
+
 ## 🔄 Offline-Synchronization Scenario
 
 <img src="assets/sync-workflow.svg" alt="Simulated offline-to-online synchronization workflow" width="100%">
@@ -255,14 +269,14 @@ is already integrated.
 
 ## 📁 Suggested Repository Structure
 
-Adapt this tree to the files that actually exist in your repository.
+
 
 ``` text
 Aegis-MoE/
 ├── README.md
 ├── requirements.txt
 ├── data/
-│   ├── raw/                 # Keep downloaded source data out of Git if large
+│   ├── raw/                 
 │   ├── processed/
 │   └── synthetic/
 ├── configs/
