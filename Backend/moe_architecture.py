@@ -1,3 +1,9 @@
+# Name - Aegis MoE Model (Aegis) - 128D MoE Classifier
+# Description - This is a 128-dimensional MoE classifier with 2 transformer blocks,
+# 4 query heads, 2 key-value heads, and 4 experts per layer. It is designed for efficient
+# processing of tabular transaction data with a mixture of experts architecture.
+# Architect - D-One98(The MoEs)
+
 import math
 import torch
 import torch.nn as nn
@@ -67,12 +73,11 @@ class SparseMoERouterLayer(nn.Module):
         x_flat = x.view(-1, D)
 
         logits = self.gate(x_flat)
-        probs = F.softmax(logits, dim=-1)  # (B*S, 4)
+        probs = F.softmax(logits, dim=-1)
 
         top_k_weights, top_k_indices = torch.topk(probs, self.top_k, dim=-1)
         top_k_weights = top_k_weights / (top_k_weights.sum(dim=-1, keepdim=True) + 1e-8)
 
-        # Load-balancing auxiliary loss (prevents router collapse onto 1 expert)
         mask_one_hot = F.one_hot(top_k_indices[:, 0], num_classes=self.num_experts).float()
         density = mask_one_hot.mean(dim=0)
         mean_prob = probs.mean(dim=0)
@@ -87,13 +92,12 @@ class SparseMoERouterLayer(nn.Module):
                 if sel.any():
                     out_flat[sel] += expert(x_flat[sel]) * w[sel]
 
-        expert_contrib = probs.view(B, S, self.num_experts).mean(dim=1) # (B, 4)
+        expert_contrib = probs.view(B, S, self.num_experts).mean(dim=1)
         return out_flat.view(B, S, D), expert_contrib, aux_loss
 
 class AegisMoEModel(nn.Module):
     def __init__(self, embed_dim=128, num_layers=2, num_experts=4, top_k=2):
         super().__init__()
-        # 4 Domain Token Projectors (4 features each -> embed_dim)
         self.domain_encoders = nn.ModuleList([nn.Linear(4, embed_dim) for _ in range(4)])
         self.pos_emb = nn.Parameter(torch.randn(1, 4, embed_dim) * 0.02)
 
@@ -110,12 +114,10 @@ class AegisMoEModel(nn.Module):
         )
 
     def forward(self, x):
-        # Split 16 features into 4 specialized views: [Tx, Graph, Temporal, OfflineSync]
         views = torch.chunk(x, 4, dim=-1)
         tokens = torch.stack([enc(v) for enc, v in zip(self.domain_encoders, views)], dim=1) + self.pos_emb
 
-        # Direct domain priors help anchor each expert's semantic specialization
-        domain_priors = torch.stack([v.mean(dim=-1) for v in views], dim=-1) # (B, 4)
+        domain_priors = torch.stack([v.mean(dim=-1) for v in views], dim=-1)
 
         total_contrib = 0
         total_aux_loss = 0.0

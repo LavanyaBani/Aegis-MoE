@@ -1,3 +1,7 @@
+# Name - D.One Model (D.One) - 500M MoE LLM
+# Description - This is a 500M parameter MoE LLM with 12 transformer blocks, 12 query heads, 4 key-value heads, and 8 experts per layer. It is designed for efficient processing of sequential data with a mixture of experts architecture.
+# Architect - D-One98
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
