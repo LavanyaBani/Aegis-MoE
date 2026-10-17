@@ -1,0 +1,28 @@
+{
+  "hardware_arch": "AMD64",
+  "device": "cuda",
+  "onnx_ready": true,
+  "aegis_moe": {
+    "pr_auc": 1.0,
+    "precision_at_100": 1.0,
+    "recall_at_100": 0.1016,
+    "p50_latency_ms": 2.805,
+    "p95_latency_ms": 3.367,
+    "throughput_tx_per_sec": 1385745.3,
+    "confusion_matrix": {
+      "tp": 984,
+      "fp": 5,
+      "tn": 8011,
+      "fn": 0
+    },
+    "mean_expert_routing": {
+      "Transaction_Expert": 0.269,
+      "Graph_Expert": 0.242,
+      "Temporal_Expert": 0.259,
+      "Offline_Anomaly_Expert": 0.23
+    }
+  },
+  "single_model_baseline": {
+    "pr_auc": 1.0
+  }
+}
