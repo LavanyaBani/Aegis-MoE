@@ -1,0 +1,11 @@
+# PyTorch with CUDA is typically installed via PyTorch's index, 
+# but keep core data science packages pinned to Python 3.14+ wheels:
+numpy>=2.3.4,<2.6.0
+pandas>=2.3.3,<3.1.0
+scikit-learn>=1.9.0,<2.0.0
+networkx>=3.4,<4.0
+
+# API Backend Stack
+fastapi>=0.130.0,<0.144.0
+uvicorn>=0.30.0,<0.35.0
+pydantic>=2.8.0,<3.0.0
