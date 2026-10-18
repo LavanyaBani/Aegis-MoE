@@ -267,47 +267,7 @@ is already integrated.
 | Visualization       | Plotly / Matplotlib                           | Metrics, timelines, and graph views    |
 | Experiment tracking | CSV/JSON logs or an experiment tracker        | Reproducible results                   |
 
-## 📁 Suggested Repository Structure
 
-
-
-``` text
-Aegis-MoE/
-├── README.md
-├── requirements.txt
-├── data/
-│   ├── raw/                 
-│   ├── processed/
-│   └── synthetic/
-├── configs/
-│   └── default.yaml
-├── src/
-│   ├── data/
-│   │   ├── generate_scenarios.py
-│   │   └── preprocess.py
-│   ├── features/
-│   │   ├── transaction_features.py
-│   │   ├── graph_features.py
-│   │   └── temporal_features.py
-│   ├── experts/
-│   │   ├── transaction_expert.py
-│   │   ├── graph_expert.py
-│   │   ├── temporal_expert.py
-│   │   └── offline_anomaly_expert.py
-│   ├── models/
-│   │   ├── gating_network.py
-│   │   └── aegis_moe.py
-│   ├── evaluation/
-│   │   └── evaluate.py
-│   └── app.py
-├── tests/
-├── assets/
-│   ├── aegis-banner.svg
-│   ├── architecture.svg
-│   └── sync-workflow.svg
-└── docs/
-    └── experiments.md
-```
 
 ## ⚙️ Getting Started
 
@@ -386,11 +346,12 @@ streamlit run src/app.py
 
 ## 👥 Team
 
+Divy Mishra
+Lavanya Bani
+Warisha Khan
+Aashay Mishra
+Shaurya Mishra
 
-
-## 📚 Resources Used
-
-- 
 
 ------------------------------------------------------------------------
 
