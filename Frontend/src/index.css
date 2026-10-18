@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    background-color: #0a0b0e;
+    color: #e2e8f0;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+}
+
+/* Custom scrollbars for high-density triage tables */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0b0e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2430;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333b4f;
+}
+
+/* Sophos Glassmorphic Card Style */
+.sophos-card {
+  background: linear-gradient(180deg, rgba(20, 23, 31, 0.95) 0%, rgba(14, 16, 22, 0.95) 100%);
+  border: 1px solid #1f2430;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(255, 255, 255, 0.03) inset;
+}
+
+.sophos-card-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.sophos-card-hover:hover {
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 8px 30px -4px rgba(139, 92, 246, 0.15), 0 0 1px 1px rgba(139, 92, 246, 0.1) inset;
+}
+
+/* Subtle glowing pulse */
+@keyframes purpleGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.6);
+  }
+}
+
+.purple-glow-btn {
+  animation: purpleGlow 3s infinite ease-in-out;
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Aegis-MoE",
+  "description": "Prototype dashboard for explainable transaction-risk triage and simulated offline-sync scenarios.",
+  "requestFramePermissions": []
+}

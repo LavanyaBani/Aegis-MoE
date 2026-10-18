@@ -2,6 +2,7 @@ import os
 import json
 import time
 import platform
+import uuid
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -48,12 +49,22 @@ def generate_reason_signals(row):
 
 def run_inference(X_batch: np.ndarray, engine_pref: str = "AUTO"):
     """Runs inference via ONNX Runtime (preferred for s390x/Telum) or PyTorch fallback."""
-    use_onnx = (ORT_SESSION is not None) and (engine_pref in ["AUTO", "ONNX"])
+    normalized_engine = engine_pref.strip().upper()
+    use_onnx = (ORT_SESSION is not None) and (
+        normalized_engine in ["AUTO", "ONNX"] or normalized_engine.startswith("AUTO (")
+    )
     t0 = time.perf_counter()
 
     if use_onnx:
         ort_inputs = {ORT_SESSION.get_inputs()[0].name: X_batch}
-        logits, routing = ORT_SESSION.run(["logits", "expert_routing"], ort_inputs)
+        available_outputs = {output.name for output in ORT_SESSION.get_outputs()}
+        routing_name = next(
+            (name for name in ("routing_weights", "expert_routing") if name in available_outputs),
+            None,
+        )
+        if "logits" not in available_outputs or routing_name is None:
+            raise RuntimeError(f"Unexpected ONNX outputs: {sorted(available_outputs)}")
+        logits, routing = ORT_SESSION.run(["logits", routing_name], ort_inputs)
         probs = 1.0 / (1.0 + np.exp(-logits))
         engine_used = "ONNX_Runtime"
     else:
@@ -98,6 +109,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    return {
+        "status": "online",
+        "service": "Aegis-MoE",
+        "model_loaded": MODEL is not None or ORT_SESSION is not None,
+        "demo_stream_loaded": DEMO_DF is not None,
+        "active_engine": ACTIVE_ENGINE,
+    }
+
 @app.get("/")
 def root_status():
     return {
@@ -140,6 +161,7 @@ def simulate_sync_burst(
     expert_names = ["Transaction_Expert", "Graph_Expert", "Temporal_Expert", "Offline_Anomaly_Expert"]
 
     alerts = []
+    device_account_counts = DEMO_DF.groupby("device_id")["account_id"].nunique().to_dict()
     for idx, (_, row) in enumerate(sampled.iterrows()):
         score = float(probs[idx])
         r_weights = routing[idx]
@@ -156,17 +178,20 @@ def simulate_sync_burst(
             "crypto_nonce_hash": row["crypto_nonce_hash"],
             "scenario": row["scenario"],
             "amount": float(row["raw_amount"]),
-            "sync_delay_sec": float(row.get("raw_sync_delay_sec", 0.0)),
+            "linked_mule_count": int(device_account_counts.get(row["device_id"], 0)),
+            "sync_delay_seconds": float(row.get("raw_sync_delay_sec", 0.0)),
             "risk_score": round(score, 4),
-            "risk_band": "QUARANTINED" if is_quarantined else risk_band,
-            "active_top2_experts": [expert_names[i] for i in top_2_indices],
-            "expert_weights": {
+            "risk_band": risk_band,
+            "top_experts": [expert_names[i] for i in top_2_indices],
+            "expert_contributions": {
                 "Transaction_Expert": round(float(r_weights[0]), 3),
                 "Graph_Expert": round(float(r_weights[1]), 3),
                 "Temporal_Expert": round(float(r_weights[2]), 3),
                 "Offline_Anomaly_Expert": round(float(r_weights[3]), 3),
             },
             "reason_signals": generate_reason_signals(row),
+            "is_quarantined": bool(is_quarantined),
+            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             "ground_truth_label": int(row["label"])
         })
 
@@ -203,12 +228,15 @@ def quarantine_sybil_ring(req: QuarantineRequest):
     for acc in affected_accounts:
         QUARANTINED_ENTITIES.add(acc)
 
+    affected_tx_ids = linked_rows["tx_id"].astype(str).tolist() if "tx_id" in linked_rows else []
     return {
-        "action": "ENCLAVE_RING_QUARANTINE_EXECUTED",
-        "anchor_device": req.device_id,
-        "isolated_accounts": affected_accounts,
-        "flagged_merchants": affected_merchants,
-        "total_entities_quarantined": len(QUARANTINED_ENTITIES)
+        "status": "SUCCESS",
+        "device_id": req.device_id,
+        "quarantined_accounts": len(affected_accounts),
+        "cluster_id": f"ENC-Z17-{req.device_id[-4:].upper()}",
+        "hsm_revocation_id": f"HSM-0x{uuid.uuid4().hex[:6].upper()}",
+        "action_timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "affected_tx_ids": affected_tx_ids
     }
 
 @app.post("/reset-quarantine")
